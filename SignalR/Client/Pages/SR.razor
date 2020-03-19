@@ -1,0 +1,40 @@
+﻿@page "/signalR"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NM
+
+<h3>SignalR</h3>
+<b>@Poruka</b>
+<button @onclick="Test" disabled="@(!Konekcija)">Test</button>
+
+@code {
+
+	private HubConnection kaHabu;
+	private string Poruka { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		kaHabu = new HubConnectionBuilder()
+			.WithUrl(NM.ToAbsoluteUri("/th")).Build();
+
+		kaHabu.On<string>("KlijentMetoda", poruka =>
+		{
+			Poruka = poruka;
+			StateHasChanged();
+		});
+
+		await kaHabu.StartAsync();
+	}
+
+	public bool Konekcija
+	{
+		get
+		{
+			return kaHabu.State == HubConnectionState.Connected;
+		}
+	}
+
+	Task Test()
+	{
+		return kaHabu.SendAsync("ProbnaMetoda");
+	}
+}
