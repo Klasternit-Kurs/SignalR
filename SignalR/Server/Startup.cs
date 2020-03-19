@@ -48,6 +48,7 @@ namespace SignalR.Server
 			{
 				endpoints.MapControllers();
 				endpoints.MapHub<Hubs.TestHub>("/th");
+				endpoints.MapHub<Hubs.ChatHub>("/ch");
 				endpoints.MapFallbackToFile("index.html");
 			});
 		}

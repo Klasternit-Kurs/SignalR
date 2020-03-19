@@ -1,0 +1,50 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NM
+ 
+<h3>Chat</h3>
+Korisnicko ime: <input @bind="Korisnicko"/><button @onclick="Reg">Registruj se!</button>
+<p><input @bind="Poruka" hidden="@(!Registrovan)" /><button @onclick="Posalji" hidden="@(!Registrovan)">Posalji</button></p>
+
+<ul>
+	@foreach (string p in Poruke)
+	{
+		<li>@p</li>
+	}
+</ul>
+
+@code 
+{
+	public string Korisnicko {get;set;}
+	public string Poruka { get; set; }
+	public bool Registrovan { get; set; }
+	public List<string> Poruke { get; set; } = new List<string>();
+
+	public HubConnection HB;
+
+	protected override async Task OnInitializedAsync()
+	{
+		HB = new HubConnectionBuilder().WithUrl(NM.ToAbsoluteUri("/ch")).Build();
+
+		HB.On<string, string>("PrimiPoruku", (kor, por) =>
+		{
+			Poruke.Add($"{kor}: {por}");
+			StateHasChanged();
+		});
+
+		await HB.StartAsync();
+	}
+
+	Task Posalji() => HB.SendAsync("PosaljiPoruku", Korisnicko, Poruka);
+
+
+	public void Reg()
+	{
+		if (!(string.IsNullOrEmpty(Korisnicko)||string.IsNullOrWhiteSpace(Korisnicko)))
+		{
+			Registrovan = true;
+		}
+
+	}
+
+}
